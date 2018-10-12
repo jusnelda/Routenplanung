@@ -1,0 +1,15 @@
+park unten links
+554,620
+42.351995, -71.070726
+
+Brücke Massachusetts Ave rechts oben
+196,511
+42.356956, -71.092461
+
+Brücke congress street links unten
+885,635
+42.351568, -71.050471
+
+Charlston Bridge
+740,274
+42.367701, -71.059216
