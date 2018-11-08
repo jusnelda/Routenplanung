@@ -1,28 +1,29 @@
-function matrix = shapefileToAdjMatrix(type)
+function [A, L] = shapefileToAdjMatrix(type)
 
 % Shapefile einlesen
 roads = shaperead('boston_roads.shp');
 Highways = shaperead('boston_roads.shp', 'Selector',{@(v1) (v1 < 4), 'CLASS'});
 Local = shaperead('boston_roads.shp', 'Selector',{@(v1) (v1 > 3), 'CLASS'});
 
-% Alle Shapefile Koordinaten in eine Liste der Form L = (start1,start2,....startn,end1,end2,....endn) schreiben
 N = length(roads);
+% Alle Shapefile Koordinaten in eine Liste der Form L = (start1,start2,....startn,end1,end2,....endn) schreiben
 for i = 1 : N
-    x = roads(i).X;
-    y = roads(i).Y;
+    x_road = roads(i).X;
+    y_road = roads(i).Y;
     
-    x(isnan(x)) = [];
-    y(isnan(y)) = [];
-    x_t(1,1) = x(1,1);
-    x_t(1,2) = x(1,(length(x)));
-    y_t(1,1) = y(1,1);
-    y_t(1,2) = y(1,(length(y)));
+    x_road(isnan(x_road)) = [];
+    y_road(isnan(y_road)) = [];
+    x_t(1,1) = x_road(1,1);
+    x_t(1,2) = x_road(1,(length(x_road)));
+    y_t(1,1) = y_road(1,1);
+    y_t(1,2) = y_road(1,(length(y_road)));
     
-    % L Vektor erstellen
-    L(i,1) = x_t(1,1); % Start x
-    L(i,2) = y_t(1,1); % Start y
-    L(N+i,1) = x_t(1,2); % End x
-    L(N+i,2) = y_t(1,2); % End y
+%     % L Vektor erstellen  
+    L(i).x = x_t(1,1); % Start x
+    L(i).y = y_t(1,1); % Start y
+    L(N+i).x = x_t(1,2); % End x
+    L(N+i).y = y_t(1,2); % End y
+    
 end
 
 if type == 'all'
@@ -32,12 +33,12 @@ if type == 'all'
     index = 1;
     % min_dist = min(min_dist)
     for i = 1 : N*2
-        P1 = L(i,:);
+        P1 = [L(i).x, L(i).y];
         for k = 1 : N*2
-            P2 = L(k,:);
+            P2 = [L(k).x, L(k).y];
             % Strecke zwischen zwei Punkten berechnen
             s = sqrt((P1(1,1) - P2(1,1))^2 + (P1(1,2) - P2(1,2))^2);
-            if s < min_dist*5 && s > 0
+            if s < min_dist * 50 && s > 0
                 % Kreuzung gefunden
                 A(i,k) = 2;
                 A(k,i) = 2;
@@ -64,6 +65,8 @@ if type == 'all'
     end
     
 end
-matrix = A;
+save('A', 'A');
+save('L', 'L');
+save('Kreuzungen', 'Kreuzungen');
 end
 
