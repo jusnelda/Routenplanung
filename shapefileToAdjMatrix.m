@@ -1,4 +1,4 @@
-function [A, L] = shapefileToAdjMatrix(type)
+function shapefileToAdjMatrix(type)
 
 % Shapefile einlesen
 roads = shaperead('boston_roads.shp');
@@ -30,25 +30,25 @@ if type == 'all'
     % Kreuzungen entdecken und in Adjazezmatrix schreiben
     A = zeros(N*2,N*2);
     min_dist = min([roads.LENGTH]);
+%     min_dist = 0.1;
     index = 1;
     % min_dist = min(min_dist)
     for i = 1 : N*2
         P1 = [L(i).x, L(i).y];
-        for k = 1 : N*2
+        for k = i+1 : N*2
             P2 = [L(k).x, L(k).y];
             % Strecke zwischen zwei Punkten berechnen
             s = sqrt((P1(1,1) - P2(1,1))^2 + (P1(1,2) - P2(1,2))^2);
-            if s < min_dist * 50 && s > 0
+            if s < min_dist
                 % Kreuzung gefunden
                 A(i,k) = 2;
                 A(k,i) = 2;
                 Kreuzungen(index,1:2) = P1;
-                Kreuzungen(index,3:4) = P2;
                 index = index + 1;
             end
         end
     end
-    % Adjazenzmatrix mit 1ern befüllen zwischen start und ende
+    % Adjazenzmatrix mit Kosten befüllen zwischen start und ende
     % A = zeros(N*2,N*2);
     average_speed_hw = 40;
     hw_weight = 1;
@@ -56,11 +56,11 @@ if type == 'all'
     local_weight = 5;
     for i = 1 : N
         if roads(i).CLASS < 4
-            A(i,i+N) = average_speed_hw * roads(i).LENGTH * hw_weight;
-            A(i+N,i) = average_speed_hw * roads(i).LENGTH * hw_weight;
+            A(i,i+N) = ( roads(i).LENGTH / average_speed_hw ) * hw_weight;
+            A(i+N,i) = ( roads(i).LENGTH / average_speed_hw ) * hw_weight;
         else
-            A(i,i+N) = average_speed_local * roads(i).LENGTH * local_weight;
-            A(i+N,i) = average_speed_local * roads(i).LENGTH * local_weight;
+            A(i,i+N) = ( roads(i).LENGTH / average_speed_local ) * local_weight;
+            A(i+N,i) = ( roads(i).LENGTH / average_speed_local ) * local_weight;
         end
     end
     
