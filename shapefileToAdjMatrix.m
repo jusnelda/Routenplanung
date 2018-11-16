@@ -1,12 +1,13 @@
 function shapefileToAdjMatrix(type)
 
-% Shapefile einlesen
+% Read Shapefile
 roads = shaperead('boston_roads.shp');
 Highways = shaperead('boston_roads.shp', 'Selector',{@(v1) (v1 < 4), 'CLASS'});
 Local = shaperead('boston_roads.shp', 'Selector',{@(v1) (v1 > 3), 'CLASS'});
 
 N = length(roads);
-% Alle Shapefile Koordinaten in eine Liste der Form L = (start1,start2,....startn,end1,end2,....endn) schreiben
+
+%   All Shapefile coordinates in one list L like this = ( start1,start2,....startn,end1,end2,....endn )
 for i = 1 : N
     x_road = roads(i).X;
     y_road = roads(i).Y;
@@ -18,7 +19,7 @@ for i = 1 : N
     y_t(1,1) = y_road(1,1);
     y_t(1,2) = y_road(1,(length(y_road)));
     
-%     % L Vektor erstellen  
+%   Create L Vector 
     L(i).x = x_t(1,1); % Start x
     L(i).y = y_t(1,1); % Start y
     L(N+i).x = x_t(1,2); % End x
@@ -27,29 +28,27 @@ for i = 1 : N
 end
 
 if type == 'all'
-    % Kreuzungen entdecken und in Adjazezmatrix schreiben
+    % Detect crossings and write to adjacency matrix
     A = zeros(N*2,N*2);
     min_dist = min([roads.LENGTH]);
-%     min_dist = 0.1;
     index = 1;
-    % min_dist = min(min_dist)
     for i = 1 : N*2
         P1 = [L(i).x, L(i).y];
         for k = i+1 : N*2
             P2 = [L(k).x, L(k).y];
-            % Strecke zwischen zwei Punkten berechnen
-            s = sqrt((P1(1,1) - P2(1,1))^2 + (P1(1,2) - P2(1,2))^2);
+            % Calculate distance between two points
+            s = sqrt( ( P1(1,1) - P2(1,1) )^2 + ( P1(1,2) - P2(1,2) )^2 );
             if s < min_dist
-                % Kreuzung gefunden
+                % Crossing found
                 A(i,k) = 2;
                 A(k,i) = 2;
-                Kreuzungen(index,1:2) = P1;
+                Crossings(index,1:2) = P1;
                 index = index + 1;
             end
         end
     end
-    % Adjazenzmatrix mit Kosten befüllen zwischen start und ende
-    % A = zeros(N*2,N*2);
+
+    % Fill adjacency matrix with costs between start and end
     average_speed_hw = 40;
     hw_weight = 1;
     average_speed_local = 20;
@@ -67,6 +66,6 @@ if type == 'all'
 end
 save('A', 'A');
 save('L', 'L');
-save('Kreuzungen', 'Kreuzungen');
+save('Crossings', 'Crossings');
 end
 

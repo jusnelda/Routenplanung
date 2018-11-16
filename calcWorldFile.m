@@ -1,12 +1,12 @@
 function [worldfile, roads_geo_out] = calcWorldFile()
-% roads_geo_out wird ein shapefile
-% Shapefile einlesen
+% roads_geo_out is going to be a shapefile
+% Read shapefile
 roads = shaperead('boston_roads.shp');
 
-% leere Datenstruktur anlegen
+% Create empty data structure
 roads_geo_out = roads;
 
-% NAD 83 Proj. - Info aus Geotiff laden
+% NAD 83 Proj. - Load info from Geotiff
 info = geotiffinfo('boston.tif');
 
 for i = 1 : length(roads)
@@ -15,19 +15,19 @@ for i = 1 : length(roads)
         x(N) = roads(i).X(k) * unitsratio('sf', 'm');
         y(N) = roads(i).Y(k) * unitsratio('sf', 'm');
         [roads_geo_out(i).Y(k), roads_geo_out(i).X(k)] = projinv(info, x(N), y(N));
-        N = N + 1;
-        
+        N = N + 1;        
     end
 end
 
-% Esri World File erstellen
-% Pixelkoordinaten aus Screenshot der Karte (Map.png)
+% Create Esri World File
+% Pixel coordinates from Map screenshot (Map.png)
 M = [554, 620, 1; 196, 511, 1;885 ,635, 1;740, 274, 1];
-% Geokoordinaten aus Google Maps herausgeholt
+
+% Geo coordinates extracted from Google Maps
 blon = [-71.070726;-71.092461;-71.050471;-71.059216];
 blat = [42.351995;42.356956;42.351568;42.367701];
 
-% Lineares Gleichungssystem von Matlab loesen lassen
+% Let Matlab solve linear equations
 alon = M\blon;
 alat = M\blat;
 worldfile(1,1) = alon(1,1);
@@ -42,7 +42,5 @@ fprintf(fileID, '%2.12f\n',worldfile);
 
 shapewrite(roads_geo_out, 'roads_geo_out.shp')
 
-
-%save('worldfile','worldfile')
 end
 
