@@ -1,6 +1,7 @@
 function final_path = a_star( start_idx, goal_idx, shapefile, L, A, proj )
 tic
 
+roads_geo = shaperead('roads_geo_out.shp');
 N = length(shapefile);
 
 % This implementation is based on indeces, i.e. all lists have the same
@@ -17,7 +18,7 @@ L(start_idx).g = path_cost_g;
 goal_distance_h = distance_to_goal(START,GOAL);
 L(start_idx).h = goal_distance_h;
 L(start_idx).f = path_cost_g + goal_distance_h;
-% Closed List is the same size as L and only contains bools, which tell you
+% Closed List is the same size as L and only contains bools, which tells you
 % if the node is in the CLOSED List or not like this CLOSED = (false, false, true,...)
 CLOSED = zeros(2*N,1);
 % OPEN List is initially empty
@@ -77,15 +78,27 @@ while path_found == 0
     
 %%%%%%%%%%%%%%%%%%%%% Plot OPEN List on the fly %%%%%%%%%%%%%%%%%%%%%%%%%%%
     open_indezes = OPEN(:,1);
-    for c = 1 : length(open_indezes)
-        x_current(c) = L(open_indezes(c)).x * unitsratio('survey feet', 'meter');
-        y_current(c) = L(open_indezes(c)).y * unitsratio('survey feet', 'meter');        
-    end
-    [lat_current,lon_current] = projinv(proj,x_current,y_current);
     figure(4)
-    OPEN_list_plot = geoshow(lat_current, lon_current, 'DisplayType', 'point', 'Marker', '.',...
-        'MarkerSize', 10, 'MarkerEdgeColor','red');
-    legend(OPEN_list_plot, 'OPEN List');
+    for c = 1 : length(open_indezes)
+       if open_indezes(c) > length(roads_geo)
+          transformed_idx = open_indezes(c) - length(roads_geo);
+          OPEN_list_plot = mapshow(roads_geo(transformed_idx), ...
+              'Color', [0,0.41,0.56], 'LineWidth', 1.5, 'LineStyle', ':');
+       else
+           OPEN_list_plot = mapshow(roads_geo(open_indezes(c)), ...
+               'Color', [0,0.41,0.56], 'LineWidth', 1.5, 'LineStyle', ':');
+       end
+    end
+        
+%     for c = 1 : length(open_indezes)
+%         x_current(c) = L(open_indezes(c)).x * unitsratio('survey feet', 'meter');
+%         y_current(c) = L(open_indezes(c)).y * unitsratio('survey feet', 'meter');        
+%     end
+%     [lat_current,lon_current] = projinv(proj,x_current,y_current);
+%     figure(4)
+%     OPEN_list_plot = geoshow(lat_current, lon_current, 'DisplayType', 'point', 'Marker', '.',...
+%         'MarkerSize', 7, 'MarkerEdgeColor','red');
+    legend(OPEN_list_plot, 'A* - Open List');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
 %   Destination found
